@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MedSuite | Professional Medical Archive</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-ivory: #fcfaf7;
+            --sage-green: #7d9d85;
+            --dusty-rose: #d4a373;
+            --text-charcoal: #1a1c23;
+            --paper-white: #ffffff;
+            --accent-soft: #f2f4ef;
+            --folder-bg: #f1f3f0;
+            --danger: #d90429;
+        }
+
+        * { box-sizing: border-box; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-ivory);
+            color: var(--text-charcoal);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar {
+            width: 400px;
+            background: var(--paper-white);
+            border-right: 1px solid rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            padding: 40px 0;
+            z-index: 10;
+        }
+
+        .sidebar-brand { 
+            padding: 0 40px; 
+            margin-bottom: 40px; 
+            cursor: pointer; 
+        }
+        .sidebar-brand h1 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 22px;
+            letter-spacing: -0.5px;
+            color: var(--text-charcoal);
+            margin: 0;
+            font-weight: 800;
+        }
+        .sidebar-brand:hover h1 { color: var(--sage-green); }
+
+        .nav-tabs { display: flex; padding: 0 40px; gap: 20px; margin-bottom: 25px; }
+        .nav-link {
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
+            letter-spacing: 1.2px; cursor: pointer; color: #b0b0b0;
+            border-bottom: 2px solid transparent; padding-bottom: 6px;
+        }
+        .nav-link.active { color: var(--sage-green); border-bottom: 2px solid var(--sage-green); }
+
+        .folder-section { padding: 0 40px; margin-bottom: 25px; }
+        .folder-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .btn-add-folder { background: none; border: 1.5px solid var(--sage-green); color: var(--sage-green); border-radius: 8px; cursor: pointer; font-size: 10px; padding: 6px 14px; font-weight: 700; }
+        
+        .folder-list { display: flex; flex-wrap: wrap; gap: 10px; }
+        .folder-pill { 
+            background: var(--folder-bg); padding: 8px 16px; border-radius: 12px; font-size: 11px; 
+            font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;
+        }
+        .folder-pill.active { background: var(--sage-green); color: white; }
+
+        .search-area { padding: 0 40px; margin-bottom: 20px; }
+        .search-input { width: 100%; background: #f8f8f8; border: 1px solid #eee; padding: 14px 20px; border-radius: 14px; outline: none; font-size: 13px; }
+
+        .list-header-actions { padding: 0 40px 12px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f9f9f9; }
+        .select-btn { font-size: 11px; font-weight: 700; color: var(--sage-green); cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
+        .delete-btn { color: var(--danger); font-size: 11px; font-weight: 700; cursor: pointer; visibility: hidden; text-transform: uppercase; border: none; background: none; }
+
+        .list-container { flex: 1; overflow-y: auto; padding: 15px 30px; }
+        .topic-btn {
+            width: 100%; text-align: left; padding: 18px 22px; margin-bottom: 10px;
+            background: transparent; border: 1px solid transparent; border-radius: 20px; cursor: pointer;
+            display: flex; align-items: center; gap: 18px;
+        }
+        .topic-btn:hover { background: #fafafa; }
+        .topic-btn.active { background: var(--accent-soft); border: 1px solid rgba(125, 157, 133, 0.1); }
+        .topic-checkbox { display: none; width: 20px; height: 20px; accent-color: var(--sage-green); }
+        .topic-info h4 { margin: 0; font-size: 14px; color: var(--text-charcoal); font-weight: 600; }
+        .topic-info span { font-size: 9px; color: #aaa; font-weight: 700; text-transform: uppercase; }
+
+        /* --- VIEWPORT --- */
+        .viewport { flex: 1; overflow-y: auto; background: var(--bg-ivory); position: relative; }
+        .top-bar {
+            position: sticky; top: 0; padding: 30px 60px;
+            display: flex; justify-content: flex-end; gap: 15px;
+            background: rgba(252, 250, 247, 0.8); backdrop-filter: blur(20px); z-index: 100;
+        }
+        .action-btn { background: var(--paper-white); border: 1px solid #e0e0e0; padding: 12px 24px; border-radius: 50px; font-weight: 600; font-size: 12px; cursor: pointer; }
+
+        /* --- REFINED HOMEPAGE --- */
+        .home-container { max-width: 800px; margin: 0 auto; padding: 140px 60px; text-align: center; }
+        .home-container h1 { font-family: 'Playfair Display', serif; font-size: 68px; font-weight: 700; color: var(--text-charcoal); line-height: 1.1; }
+        .home-container .mission { font-size: 20px; color: #555; margin-top: 35px; line-height: 1.8; font-weight: 300; max-width: 600px; margin-left: auto; margin-right: auto; }
+        .home-container .sub-text { font-size: 12px; color: var(--sage-green); margin-top: 50px; text-transform: uppercase; letter-spacing: 3px; font-weight: 800; }
+
+        /* --- NOTE CONTENT --- */
+        .content-wrapper { max-width: 950px; margin: 0 auto; padding: 40px 60px 150px; }
+        .note-body { background: var(--paper-white); padding: 100px 120px; border-radius: 40px; line-height: 2.2; box-shadow: 0 40px 100px rgba(0,0,0,0.04); }
+        .note-body h1 { font-family: 'Playfair Display', serif; font-size: 56px; margin-bottom: 30px; }
+        .note-body h2 { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; text-transform: uppercase; letter-spacing: 3px; color: var(--sage-green); margin-top: 60px; border-bottom: 2px solid #f8f8f8; padding-bottom: 15px; font-weight: 800; }
+        .note-body p { font-size: 17px; color: #2d2d2d; margin-bottom: 30px; text-align: justify; }
+        .clinical-box { background: #fafafa; padding: 45px; border-radius: 25px; margin: 50px 0; border-left: 10px solid var(--dusty-rose); font-style: italic; }
+
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <div class="sidebar-brand" onclick="goHome()">
+            <h1>MEDSUITE.</h1>
+        </div>
+        
+        <div class="nav-tabs">
+            <span class="nav-link active" id="tab-all" onclick="setMode('all')">Archive</span>
+            <span class="nav-link" id="tab-fav" onclick="setMode('fav')">Favorites</span>
+        </div>
+
+        <div class="folder-section">
+            <div class="folder-header">
+                <span style="font-size: 9px; font-weight: 800; color: #ccc; letter-spacing: 2px;">COLLECTIONS</span>
+                <button class="btn-add-folder" onclick="createFolder()">+ NEW</button>
+            </div>
+            <div class="folder-list" id="folder-display"></div>
+        </div>
+
+        <div class="search-area">
+            <input type="text" class="search-input" id="search" placeholder="Search archive..." onkeyup="filter()">
+        </div>
+
+        <div class="list-header-actions" id="bulk-actions" style="display:none;">
+            <span class="select-btn" id="toggle-sel" onclick="toggleSelMode()">Select Notes</span>
+            <button class="delete-btn" id="del-btn" onclick="bulkDel()">Delete</button>
+        </div>
+
+        <div class="list-container" id="topic-list"></div>
+    </aside>
+
+    <main class="viewport">
+        <div class="top-bar" id="note-bar" style="visibility: hidden;">
+            <select class="folder-select" id="folder-assign" onchange="assignToFolder()" style="padding:12px 18px; border-radius:50px; border:1px solid #eee; font-size:11px;">
+                <option value="">Move to Collection...</option>
+            </select>
+            <button class="action-btn" id="fav-btn" onclick="toggleFav()">Add Favorite</button>
+            <button class="action-btn" onclick="window.print()">Export PDF</button>
+        </div>
+
+        <div id="main-view"></div>
+    </main>
+
+<script>
+    const trashIcon = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+
+    const rawTitles = [
+        "Rhabdomyolysis Pathophysiology", "Acute Coronary Syndrome", "Sepsis & Septic Shock", "Chronic Obstructive Pulmonary Disease",
+        "Acute Respiratory Distress Syndrome", "Chronic Kidney Disease", "Type 2 Diabetes Mellitus", "Heart Failure with Reduced EF",
+        "Ischemic Stroke Management", "Cirrhosis & Portal Hypertension", "Systemic Lupus Erythematosus", "Rheumatoid Arthritis",
+        "Multiple Sclerosis", "Inflammatory Bowel Disease", "Acute Pancreatitis", "Pulmonary Embolism", "Hyperthyroidism: Graves' Disease",
+        "Adrenal Insufficiency", "Pheochromocytoma", "Glomerulonephritis", "Pneumonia: Hospital Acquired", "Bacterial Meningitis",
+        "Aortic Dissection", "Infective Endocarditis", "Atrial Fibrillation", "Myasthenia Gravis", "Parkinson's Disease",
+        "Alzheimer's Disease", "Gouty Arthritis", "Osteoporosis Physiology", "Peptic Ulcer Disease", "Gastroesophageal Reflux Disease",
+        "Celiac Disease", "Aplastic Anemia", "Iron Deficiency Anemia", "Disseminated Intravascular Coagulation", "Multiple Myeloma",
+        "Hodgkin Lymphoma", "Non-Hodgkin Lymphoma", "Leukemia: AML & ALL", "Cushing's Syndrome", "Polycystic Kidney Disease",
+        "Ascites Management", "Hepatic Encephalopathy", "Status Epilepticus", "Guillain-Barré Syndrome", "Psoriasis Pathophysiology",
+        "Acute Cholecystitis", "Urolithiasis (Kidney Stones)", "Syndrome of Inappropriate Antidiuretic Hormone", "Diabetes Insipidus",
+        "Hypokalemia & Hyperkalemia", "Hyponatremia Pathogenesis", "Respiratory Acidosis", "Metabolic Alkalosis",
+        "HIV/AIDS: Clinical Progression", "Tuberculosis Pathology", "Malaria: Plasmodium Lifecycle", "Dengue Hemorrhagic Fever", "Osteomyelitis"
+    ];
+
+    function generateLongContent(title) {
+        return `
+            <div class="note-body">
+                <h1>${title}</h1>
+                <p>${title} represents a sophisticated clinical intersection of physiological disruption and compensatory systemic failure. This analysis delves into the underlying molecular triggers that necessitate urgent medical intervention and long-term stabilization strategies. In the modern clinical setting, the ability to isolate specific biochemical markers and interpret real-time hemodynamic fluctuations is the difference between a successful recovery and irreversible end-organ dysfunction. The complexity of ${title} demands a rigorous understanding of both the micro-cellular environment and the macroscopic systemic consequences that follow the initial insult.</p>
+                
+                <h2>I. Advanced Pathophysiological Mechanics</h2>
+                <p>At its core, the cellular dysfunction in ${title} is driven by a profound energetic failure within the mitochondrial matrix. When oxidative phosphorylation is compromised—whether by ischemia, metabolic toxins, or direct trauma—the cell experiences a rapid decline in available ATP. This failure directly impacts the Na+/K+-ATPase pumps, leading to a loss of membrane potential and subsequent intracellular accumulation of sodium and water. This osmotic influx causes immediate cellular swelling and eventual sarcolemmal rupture. Simultaneously, the inability to sequester cytosolic calcium activates a lethal cascade of proteases and phospholipases, which begin the enzymatic digestion of the cell's own structural proteins and phospholipid bilayer.</p>
+                <p>This process of necrosis is rarely localized; it triggers a profound inflammatory response as damage-associated molecular patterns (DAMPs) are released into the interstitial space. These molecules activate resident macrophages and recruit circulating neutrophils, leading to a surge in pro-inflammatory cytokines like TNF-α and IL-1β. This cytokine storm further compromises the vascular endothelium, resulting in capillary leak syndrome and widespread tissue edema. In the context of ${title}, this edema can lead to secondary compartment syndrome or profound third-spacing, which severely reduces effective circulating volume and exacerbates the state of hypoperfusion.</p>
+
+                <div class="clinical-box">
+                    <strong>Critical Note: Pathological Feedback Loops</strong><br>
+                    Clinicians must account for the vicious cycle of ROS production and mitochondrial decay. As reactive oxygen species accumulate, they induce further lipid peroxidation of mitochondrial membranes, permanently disabling the cell's ability to recover even if initial perfusion is restored. This "no-reflow" phenomenon is a hallmark of severe ${title}.
+                </div>
+
+                <h2>II. Diagnostic Stratification & Clinical Intervention</h2>
+                <p>Accurate staging of ${title} relies on a combination of high-resolution imaging and quantitative biomarker analysis. Serum markers must be interpreted within the context of their specific half-lives and clearance rates. For example, a sudden plateau in enzyme levels may not indicate resolution but rather the exhaustion of the cellular reservoir. Diagnostic protocols should prioritize the detection of metabolic acidosis, as a falling bicarbonate level and a rising anion gap are the most reliable indicators of systemic tissue hypoxia and anaerobic metabolism. Advanced imaging, such as contrast-enhanced CT or gadolinium-enhanced MRI, provides essential data on tissue viability and the extent of localized necrosis.</p>
+                <p>Therapeutic management begins with the restoration of homeostatic balance. Volume resuscitation must be carefully calibrated to avoid fluid overload, which can exacerbate pulmonary edema or worsen heart failure with reduced ejection fraction. The use of balanced crystalloids is preferred over normal saline to prevent the development of hyperchloremic metabolic acidosis. Pharmacological stabilization often involves the targeted use of vasopressors or specific receptor antagonists designed to interrupt the pathological signaling cascade. In severe cases of ${title}, extracorporeal support—such as hemodialysis or continuous renal replacement therapy (CRRT)—is essential to manage the profound electrolyte imbalances and toxic metabolite buildup that characterize the late stages of the syndrome.</p>
+                <p>As the acute phase resolves, the focus shifts to metabolic optimization and the mitigation of fibrotic remodeling. The use of ACE inhibitors or beta-adrenergic blockers may be indicated to reduce the neurohormonal stress on the heart and kidneys. Ultimately, the successful management of ${title} requires a meticulous, multi-disciplinary approach that combines the precision of molecular biology with the urgency of critical care medicine. Future research into gene therapy and cytokine inhibitors promises to further refine our ability to treat the root causes of this complex condition, moving beyond supportive care toward definitive biochemical resolution.</p>
+            </div>`;
+    }
+
+    const medLibrary = rawTitles.map((title, i) => ({
+        id: `note-${i}`,
+        category: "Clinical Medicine",
+        title: title,
+        content: generateLongContent(title)
+    }));
+
+    let folders = JSON.parse(localStorage.getItem('ms_elite_folders_v4')) || ["Internal Med", "Surgical Rotation"];
+    let itemFolders = JSON.parse(localStorage.getItem('ms_elite_map_v4')) || {}; 
+    let favorites = JSON.parse(localStorage.getItem('ms_elite_favs_v4')) || [];
+    let currentMode = 'home'; 
+    let activeFolder = null;
+    let currentId = null;
+    let isSel = false;
+
+    function goHome() {
+        currentId = null; activeFolder = null; currentMode = 'home';
+        document.getElementById('note-bar').style.visibility = 'hidden';
+        document.getElementById('bulk-actions').style.display = 'none';
+        
+        document.getElementById('main-view').innerHTML = `
+            <div class="home-container">
+                <h1>Professional Intelligence.</h1>
+                <p class="mission">MedSuite is a precision-engineered archive for high-density clinical research. It serves as a centralized hub for managing the complexities of modern pathophysiology, designed for practitioners who demand absolute accuracy and systemic organization.</p>
+                <p class="sub-text">Select a collection from the archive to begin.</p>
+            </div>
+        `;
+        renderList();
+    }
+
+    function renderList() {
+        const list = document.getElementById('topic-list');
+        let data = medLibrary;
+        if (currentMode === 'fav') data = data.filter(i => favorites.includes(i.id));
+        if (activeFolder) data = data.filter(i => itemFolders[i.id] === activeFolder);
+
+        list.innerHTML = data.map(item => `
+            <div class="topic-btn ${currentId === item.id ? 'active' : ''}" onclick="handleNoteClick('${item.id}')">
+                <input type="checkbox" class="topic-checkbox" value="${item.id}" style="display:${isSel?'block':'none'}" onclick="event.stopPropagation(); updateDelBtn()">
+                <div class="topic-info">
+                    <span>${itemFolders[item.id] || 'Archive'}</span>
+                    <h4>${item.title}</h4>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderFolders() {
+        const display = document.getElementById('folder-display');
+        display.innerHTML = folders.map(f => `
+            <div class="folder-pill ${activeFolder === f ? 'active' : ''}" onclick="openFolder('${f}')">
+                ${f}
+                <div onclick="deleteFolder(event, '${f}')">${trashIcon}</div>
+            </div>
+        `).join('');
+        const select = document.getElementById('folder-assign');
+        select.innerHTML = `<option value="">Move to Collection...</option>` + folders.map(f => `<option value="${f}">${f}</option>`).join('');
+    }
+
+    function toggleSelMode() {
+        isSel = !isSel;
+        document.getElementById('toggle-sel').innerText = isSel ? 'Finish' : 'Select Notes';
+        document.getElementById('del-btn').style.visibility = isSel ? 'visible' : 'hidden';
+        renderList();
+    }
+
+    function updateDelBtn() {
+        const count = document.querySelectorAll('.topic-checkbox:checked').length;
+        document.getElementById('del-btn').innerText = `Remove (${count})`;
+    }
+
+    function bulkDel() {
+        const selected = Array.from(document.querySelectorAll('.topic-checkbox:checked')).map(c => c.value);
+        if(selected.length === 0) return;
+        if(confirm(`Remove ${selected.length} items from this collection?`)) {
+            selected.forEach(id => delete itemFolders[id]);
+            saveData(); isSel = false;
+            document.getElementById('toggle-sel').innerText = 'Select Notes';
+            renderList();
+        }
+    }
+
+    function openFolder(name) {
+        activeFolder = name; currentMode = 'folder'; isSel = false;
+        document.getElementById('bulk-actions').style.display = 'flex';
+        document.getElementById('toggle-sel').innerText = 'Select Notes';
+        document.getElementById('del-btn').style.visibility = 'hidden';
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+        renderFolders(); renderList();
+    }
+
+    function handleNoteClick(id) {
+        if(isSel) return;
+        loadNote(id);
+    }
+
+    function loadNote(id) {
+        currentId = id;
+        const note = medLibrary.find(n => n.id === id);
+        document.getElementById('main-view').innerHTML = `<div class="content-wrapper">${note.content}</div>`;
+        document.getElementById('note-bar').style.visibility = 'visible';
+        document.getElementById('fav-btn').innerText = favorites.includes(id) ? 'Favorited' : 'Add Favorite';
+        document.getElementById('folder-assign').value = itemFolders[id] || "";
+        renderList();
+        document.querySelector('.viewport').scrollTo(0,0);
+    }
+
+    function createFolder() {
+        const name = prompt("Collection Name:");
+        if (name && !folders.includes(name)) { folders.push(name); saveData(); renderFolders(); }
+    }
+
+    function deleteFolder(e, name) {
+        e.stopPropagation();
+        if(confirm(`Delete "${name}"?`)) {
+            folders = folders.filter(f => f !== name);
+            Object.keys(itemFolders).forEach(k => { if(itemFolders[k] === name) delete itemFolders[k]; });
+            goHome(); saveData(); renderFolders();
+        }
+    }
+
+    function toggleFav() {
+        if (!currentId) return;
+        if (favorites.includes(currentId)) favorites = favorites.filter(f => f !== currentId);
+        else favorites.push(currentId);
+        saveData(); loadNote(currentId);
+    }
+
+    function assignToFolder() {
+        if (!currentId) return;
+        const f = document.getElementById('folder-assign').value;
+        if (f) itemFolders[currentId] = f; else delete itemFolders[currentId];
+        saveData(); renderList();
+    }
+
+    function setMode(m) {
+        currentMode = m; activeFolder = null; isSel = false;
+        document.getElementById('bulk-actions').style.display = 'none';
+        document.querySelectorAll('.nav-link').forEach(l => l.classList.toggle('active', l.id.includes(m)));
+        renderFolders(); renderList();
+    }
+
+    function filter() {
+        const q = document.getElementById('search').value.toLowerCase();
+        document.querySelectorAll('.topic-btn').forEach(b => b.style.display = b.innerText.toLowerCase().includes(q) ? 'flex' : 'none');
+    }
+
+    function saveData() {
+        localStorage.setItem('ms_elite_folders_v4', JSON.stringify(folders));
+        localStorage.setItem('ms_elite_map_v4', JSON.stringify(itemFolders));
+        localStorage.setItem('ms_elite_favs_v4', JSON.stringify(favorites));
+    }
+
+    goHome();
+    renderFolders();
+</script>
+</body>
+</html>
